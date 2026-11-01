@@ -1,0 +1,457 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-request",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "325a73ee-acdb-48f2-9ec5-785bd6828f58",
+      "name": "Webhook",
+      "webhookId": "254cc78b-8d8b-44c0-8979-ac9e1e390503",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ThEoHnbOBfHDCJPu",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "=profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=id",
+              "keyValue": "={{ $json.manager_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "3e264053-a46c-46a8-a794-d3322a06ff0b",
+      "name": "Manager",
+      "credentials": {
+        "supabaseApi": {
+          "id": "FuHmrpG92QNsjlUG",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "=profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=id",
+              "keyValue": "={{ $('Webhook').item.json.body.record.requester_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "9844e661-3eef-49d1-a14e-06acc40628b8",
+      "name": "Salarié",
+      "credentials": {
+        "supabaseApi": {
+          "id": "FuHmrpG92QNsjlUG",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "=request_types",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=id",
+              "keyValue": "={{ $('Webhook').item.json.body.record.type_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        592,
+        144
+      ],
+      "id": "ce52a8f0-178a-4660-ac6f-a878c86c191c",
+      "name": "Type",
+      "credentials": {
+        "supabaseApi": {
+          "id": "FuHmrpG92QNsjlUG",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "rh@novacorp.test",
+        "toEmail": "manager@test.com",
+        "subject": "=Nouvelle demande de {{ $('Type').item.json.label }}",
+        "emailFormat": "text",
+        "text": "=Bonjour,\n\n{{ $('Salarié').item.json.full_name }} a créé une demande de {{ $('Type').item.json.label }}.\nDu {{ $('Webhook').item.json.body.record.start_date }} au {{ $('Webhook').item.json.body.record.end_date }}.\n\nMerci de la traiter dans la plateforme RH.\nContrôle IA :\n{{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        816,
+        144
+      ],
+      "id": "038b8a28-14cf-48ef-996a-df09cfa92355",
+      "name": "Send an Email",
+      "webhookId": "568ddffc-4cdf-4ec1-a706-baa975003c77",
+      "credentials": {
+        "smtp": {
+          "id": "Uh6OCdvArKZ3totb",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "f4291e9f-8130-497b-8d59-4a508d2abd08",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "INSERT",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        144,
+        144
+      ],
+      "id": "aad41921-3f86-4a4c-ab89-225871655068",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "=profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=id",
+              "keyValue": "={{ $('Webhook').item.json.body.record.requester_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        352,
+        304
+      ],
+      "id": "c63e35ad-58a3-4833-a759-c8b04faeef84",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "FuHmrpG92QNsjlUG",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "rh@novacorp.test",
+        "toEmail": "salarie@test.com",
+        "subject": "=Ta demande est : {{ $('Webhook').item.json.body.record.status }}",
+        "emailFormat": "text",
+        "text": "=   Bonjour {{ $json.full_name }},\n   Le statut de ta demande est maintenant : {{ $('Webhook').item.json.body.record.status }}.\n   Service RH NovaCorp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        560,
+        304
+      ],
+      "id": "327b855d-06c5-4c35-896d-bd58b47dcba8",
+      "name": "Send an Email1",
+      "webhookId": "f8c1d09d-90b1-4eb4-b92a-69f9a689671f",
+      "credentials": {
+        "smtp": {
+          "id": "Uh6OCdvArKZ3totb",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "=leave_balances",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=user_id",
+              "keyValue": "={{ $('Webhook').item.json.body.record.requester_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        816,
+        320
+      ],
+      "id": "29a15a1a-2f11-4afc-8688-0e5a6515bee5",
+      "name": "Solde",
+      "credentials": {
+        "supabaseApi": {
+          "id": "FuHmrpG92QNsjlUG",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Tu es un assistant RH. Contrôle cette demande et rédige une synthèse de 3 lignes maximum pour le manager.\nVérifie : dates cohérentes (fin après début), solde de congés suffisant (pour les congés), anomalies éventuelles.\nCommence par \"VERDICT : OK\" ou \"VERDICT : À VÉRIFIER\", puis la synthèse.\n\nSalarié : {{ $('Salarié').item.json.full_name }}\nType : {{ $('Type').item.json.label }}\nDébut : {{ $('Webhook').item.json.body.record.start_date }}\nFin : {{ $('Webhook').item.json.body.record.end_date }}\nMontant : {{ $('Webhook').item.json.body.record.amount }}\nSolde de congés restant (jours) : {{ $('Solde').item.json.days_left }}",
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1040,
+        320
+      ],
+      "id": "52fc980c-7ee9-4e39-96ce-50d0ed6df68f",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        528
+      ],
+      "id": "27ac523f-23f0-4893-adca-210b1a3e02e8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3Fq9zLc09o7LKavs",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "applicant-informal-gui-livecam.trycloudflare.com",
+            "user-agent": "pg_net/0.20.4",
+            "content-length": "363",
+            "accept": "*/*",
+            "accept-encoding": "gzip",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "2a05:d018:cb1:bb00:194d:3e1a:5dd6:47cb",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IE",
+            "cf-ray": "a5188a62dae4bde0-CDG",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-warp-tag-id": "6c6104f6-4cdf-4c20-be9e-8eb0e7d138b7",
+            "cf-worker": "trycloudflare.com",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-forwarded-for": "2a05:d018:cb1:bb00:194d:3e1a:5dd6:47cb",
+            "x-forwarded-proto": "https",
+            "x-webhook-secret": "Cp3Yo7JlQGZrazmNdqREViHWIf20ObT5"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "type": "INSERT",
+            "table": "requests",
+            "record": {
+              "id": "005f145e-5d68-49bf-90d0-9753c1201890",
+              "amount": 5,
+              "status": "pending",
+              "comment": "yky",
+              "type_id": 2,
+              "end_date": "2027-05-05",
+              "created_at": "2026-10-28T08:23:48.774676+00:00",
+              "start_date": "2027-04-05",
+              "requester_id": "61335296-6960-4704-8a18-4dee5e9368eb"
+            },
+            "schema": "public",
+            "old_record": null
+          },
+          "webhookUrl": "https://applicant-informal-gui-livecam.trycloudflare.com/webhook-test/new-request",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salarié": {
+      "main": [
+        [
+          {
+            "node": "Manager",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Type": {
+      "main": [
+        [
+          {
+            "node": "Solde",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Salarié",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "Send an Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solde": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e79a253d-0515-45ff-aaff-32fce9eb9f68",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1611c6eb216aae409dc74b25a56ecbf5bb929ac74bb6d4d21b6dedb129bd69ad"
+  },
+  "nodeGroups": [],
+  "id": "jW2C1l3AFqOG4j5r",
+  "tags": []
+}
